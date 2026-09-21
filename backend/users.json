@@ -224,5 +224,22 @@
       "passEnc": "v1.6d5ccf068c2a4c8732103f11.826133ad5fc7c7b879e289326d43cce6.a91a49cb85342fbac4b2fb368ce98f4c0756cf",
       "connectedAt": "2026-09-21T09:27:22.339Z"
     }
+  },
+  {
+    "username": "sdfsadfsadf",
+    "email": "lokendra14c@gmail.com",
+    "passwordHash": "scrypt$9c6fe57841efcf8b79d2ec764f339504$eff6e69e6bddc7a491204e0a1470237ba3ad431318357efdf5a1d4d621a3560ceba042d322267b5c8e9f61c20e85dff7772f21b50541933e8ed08a171068288e",
+    "firstLoginTime": "2026-09-21T09:57:12.766Z",
+    "loginTime": "2026-09-21T09:57:12.768Z",
+    "loginCount": 1,
+    "mailbox": {
+      "host": "smtp.gmail.com",
+      "port": 465,
+      "secure": true,
+      "user": "mystoreforrstore@gmail.com",
+      "fromName": "Napoleon",
+      "passEnc": "v1.f0d5193884e9698d90d714d4.275a9b9fe369e2a22c09a456b6bfd196.40c957e7998001b8c2a04bbe582e2e79bda476",
+      "connectedAt": "2026-09-21T10:03:17.203Z"
+    }
   }
 ]
