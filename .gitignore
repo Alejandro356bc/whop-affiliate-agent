@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Environment and Secrets
+.env
+.env.local
+credentials.json
+token.json
+storage-state.json
+
+# Local dev scrape cache (DEV_CACHE=true)
+.dev-cache.json
+
+# Logs & System files
+*.log
+.DS_Store

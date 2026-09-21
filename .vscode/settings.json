@@ -1,0 +1,10 @@
+{
+  "liveServer.settings.root": "/frontend",
+  "liveServer.settings.ignoreFiles": [
+    "**/backend/**",
+    "**/*.json",
+    "**/.env",
+    "**/.git/**"
+  ],
+  "liveServer.settings.port": 5501
+}

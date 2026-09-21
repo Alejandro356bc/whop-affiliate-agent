@@ -1,0 +1,23 @@
+{
+  "name": "whop-affiliate-agent-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "scrape": "node apifyScraper.js",
+    "scrape:login": "node scraper.js",
+    "seed": "node seedCache.js",
+    "mail:test": "node mailTest.js"
+  },
+  "dependencies": {
+    "apify-client": "^2.25.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "googleapis": "^140.0.1",
+    "nodemailer": "^6.9.14",
+    "playwright": "^1.47.0"
+  }
+}

@@ -1,0 +1,3181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Whop Affiliate Outreach Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<!-- whop.com sets `font-family: Acid Grotesk, Acid Grotesk Fallback, system-ui, sans-serif`.
+     Acid Grotesk is a commercial face (Fontfabric) that Whop licenses and self-hosts, so it
+     can't be redistributed here. General Sans is the closest free grotesque and stands in.
+     Licensed Acid Grotesk? Drop the .woff2 files in frontend/fonts/ and uncomment the block
+     below - the stack already names Acid Grotesk first, so it takes over automatically. -->
+<link href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<style>
+:root {
+  --brand: #fa4616;
+  --brand-hi: #ff6f45;
+  --brand-dim: #2a1008;
+
+  --bg: #0a0a0b;
+  --surface: #131316;
+  --surface-2: #17171b;
+  --surface-3: #1e1e23;
+
+  --line: #26262c;
+  --line-hi: #33333b;
+
+  --text: #f2f1ee;
+  --text-2: #9c9ca6;
+  --text-3: #85858f;
+
+  --ok: #4fc98a;
+  --warn: #e8b33c;
+  --err: #ff8175;
+
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 16px;
+
+  --display: 'Acid Grotesk', 'General Sans', system-ui, sans-serif;
+  --body: 'Acid Grotesk', 'General Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Uncomment once frontend/fonts/ holds your licensed Acid Grotesk files.
+@font-face {
+  font-family: 'Acid Grotesk';
+  src: url('fonts/AcidGrotesk-Regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Acid Grotesk';
+  src: url('fonts/AcidGrotesk-Medium.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Acid Grotesk';
+  src: url('fonts/AcidGrotesk-Bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+*/
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--brand); text-decoration: none; }
+a:hover { color: var(--brand-hi); }
+
+::placeholder { color: #6f6f79; }
+
+/* Chrome paints autofilled and suggestion-accepted inputs with its own pale
+   background and ignores background-color outright. A large inset box-shadow
+   is the only thing that covers it, and the absurd transition delay stops the
+   colour flashing through on the way in. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 100px #0e0e10 inset;
+  box-shadow: 0 0 0 100px #0e0e10 inset;
+  caret-color: var(--text);
+  border-radius: inherit;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
+/* Firefox has its own, simpler version of the same thing */
+input:autofill,
+textarea:autofill {
+  -moz-text-fill-color: var(--text);
+  background-color: #0e0e10 !important;
+}
+
+
+
+/* =========================
+   MOTION
+   -------------------------
+   One easing curve and three durations, so everything on the page moves
+   like it belongs to the same system. Every rule here is disabled wholesale
+   by the reduced-motion block at the bottom of this section.
+   ========================= */
+
+:root {
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --fast: .14s;
+  --base: .22s;
+  --slow: .38s;
+}
+
+html { scroll-behavior: smooth; }
+
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(14px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes modal-out {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(8px) scale(.99); }
+}
+@keyframes backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* screens */
+.screen.is-active { animation: screen-in var(--slow) var(--ease) both; }
+
+/* Grids stagger from script so the timing can react to how many landed.
+   These start invisible and are revealed by the animation; the no-JS and
+   reduced-motion paths below put them back. */
+.program-card,
+.tpl-card { opacity: 0; }
+
+html.no-motion .program-card,
+html.no-motion .tpl-card { opacity: 1; }
+
+/* the empty / loading / intro panels */
+.stage,
+.empty-state { animation: fade-in var(--slow) var(--ease) both; }
+
+/* buttons feel pressable */
+.btn {
+  transition: background var(--base) var(--ease),
+              border-color var(--base) var(--ease),
+              color var(--base) var(--ease),
+              box-shadow var(--base) var(--ease),
+              transform var(--fast) var(--ease);
+}
+.btn:active { transform: translateY(1px) scale(.99); }
+.btn { position: relative; overflow: hidden; }
+.btn > * { position: relative; z-index: 1; }
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .28;
+  transform: scale(0);
+  pointer-events: none;
+  z-index: 0;
+}
+.btn-primary:hover { box-shadow: 0 8px 22px rgba(250, 70, 22, .26); }
+.btn-outline:hover { box-shadow: 0 6px 18px rgba(250, 70, 22, .14); }
+
+.btn-icon, .btn-copy, .filter-pill, .mode-switch button, .modal-close, .back-link {
+  transition: background var(--base) var(--ease),
+              border-color var(--base) var(--ease),
+              color var(--base) var(--ease),
+              transform var(--fast) var(--ease);
+}
+.btn-icon:active, .btn-copy:active, .filter-pill:active,
+.mode-switch button:active, .modal-close:active { transform: scale(.97); }
+.back-link:hover { transform: translateX(-2px); }
+
+/* filter pills settle rather than snap */
+.filter-pill.active { transform: translateY(-1px); }
+
+
+/* status + summary panels arrive rather than appear */
+.status-message,
+.recipient-summary,
+.mail-status,
+.send-progress { animation: rise-in var(--base) var(--ease) both; }
+
+/* modal exit, paired with closeWithAnimation() in the script */
+.modal.is-closing { animation: backdrop-out var(--base) var(--ease) both; }
+.modal.is-closing .modal-dialog,
+.modal.is-closing .tpl-modal-dialog { animation: modal-out var(--base) var(--ease) both; }
+
+/* thumbnails fade up once their preview lands */
+.tpl-thumb iframe {
+  opacity: 0;
+  transition: opacity var(--slow) var(--ease);
+}
+.tpl-thumb.is-ready iframe { opacity: 1; }
+
+html.no-motion .splash-lockup,
+html.no-motion .login-panel > *,
+html.no-motion .login-brand > * { opacity: 1 !important; transform: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: .001ms !important;
+  }
+  .btn:active, .back-link:hover, .filter-pill.active,
+  .btn-icon:active, .btn-copy:active, .modal-close:active { transform: none; }
+  .tpl-thumb iframe { opacity: 1; }
+}
+
+/* =========================
+   SCREEN ROUTER
+   ========================= */
+
+.screen { display: none; }
+.screen.is-active { display: block; }
+#appShell[hidden] { display: none; }
+
+/* =========================
+   00 — SPLASH / LOADER
+   ========================= */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+  background: var(--bg);
+  opacity: 1;
+  transition: opacity .45s ease;
+}
+.splash.is-out { opacity: 0; pointer-events: none; }
+.splash[hidden] { display: none; }
+
+.splash-lockup {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.splash-logo {
+  display: block;
+  height: 54px;
+  width: auto;
+}
+
+.splash-aoa {
+  font-family: var(--display);
+  font-size: 58px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.splash-bar {
+  width: 220px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.splash-bar span {
+  display: block;
+  width: 38%;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--brand);
+  animation: splash-slide 1.15s ease-in-out infinite;
+}
+@keyframes splash-slide {
+  from { transform: translateX(-110%); }
+  to   { transform: translateX(370%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash { transition: none; }
+  .splash-bar span { animation: none; width: 100%; }
+}
+
+@media (max-width: 600px) {
+  .splash-logo { height: 40px; }
+  .splash-aoa { font-size: 44px; }
+}
+
+/* =========================
+   01 — LOGIN
+   ========================= */
+
+.login-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+}
+
+.login-brand {
+  padding: 56px 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 48px;
+  border-right: 1px solid var(--line);
+}
+
+.brand-logo {
+  display: block;
+  height: 26px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.brand-row { display: flex; align-items: center; gap: 12px; }
+.brand-row span.name { font-size: 15px; font-weight: 600; color: #c9c9d2; }
+
+.login-brand h1 {
+  font-family: var(--display);
+  font-size: clamp(38px, 4.4vw, 62px);
+  line-height: 1.03;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.login-brand .lede {
+  max-width: 460px;
+  margin-top: 20px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.phase-rail { display: flex; flex-direction: column; }
+
+.phase-rail .phase {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  color: var(--text-2);
+}
+.phase-rail .phase:last-child { border-bottom: 1px solid var(--line); }
+.phase-rail .phase .n { font-family: var(--mono); font-size: 13px; color: var(--text-3); width: 28px; }
+.phase-rail .phase .label { flex: 1; }
+.phase-rail .phase.here { color: var(--text); font-weight: 600; }
+.phase-rail .phase.here .n { color: var(--brand); }
+.phase-rail .phase .here-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--brand);
+}
+
+.login-panel {
+  background: var(--surface);
+  padding: 56px 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 30px;
+}
+
+.login-panel h2 {
+  font-family: var(--display);
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 10px;
+}
+
+.login-panel .sub { margin-top: 8px; font-size: 15px; color: var(--text-2); }
+
+.input-shell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--line-hi);
+  border-radius: var(--r);
+  background: #0e0e10;
+  transition: border-color .15s, box-shadow .15s;
+}
+.input-shell:focus-within {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(250, 70, 22, 0.16);
+}
+.input-shell .at { font-family: var(--mono); font-size: 16px; color: #6f6f79; }
+.input-shell input {
+  flex: 1;
+  height: 54px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #c9c9d2;
+}
+
+.note {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: #0e0e10;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+.note svg { flex-shrink: 0; margin-top: 2px; stroke: var(--text-3); }
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn-primary { background: var(--brand); color: #0a0a0b; }
+.btn-primary:hover { background: var(--brand-hi); }
+.btn-primary:disabled { background: var(--surface-3); color: var(--text-3); cursor: not-allowed; }
+.btn-outline { background: transparent; border-color: var(--brand); color: var(--brand); }
+.btn-outline:hover { background: var(--brand-dim); }
+.btn-ghost { background: var(--surface-2); border-color: var(--line-hi); color: var(--text); }
+.btn-ghost:hover { background: var(--surface-3); border-color: #45454f; }
+.btn-lg { height: 56px; font-size: 16px; font-weight: 700; width: 100%; }
+
+/* =========================
+   TOP BAR
+   ========================= */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 68px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(14, 14, 16, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+
+.spacer { flex: 1; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #141418;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c9c9d2;
+  white-space: nowrap;
+}
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+.pill .apify-mark { display: block; width: 16px; height: 16px; flex-shrink: 0; }
+.pill.is-down .dot { background: var(--err); }
+.pill.is-checking .dot { background: var(--warn); }
+
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #141418;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-2);
+}
+.user-chip .avatar {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--surface-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--body);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.btn-icon {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line-hi);
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.btn-icon:hover { background: var(--surface-3); border-color: #45454f; }
+
+/* =========================
+   PAGE SHELL
+   ========================= */
+
+.page { max-width: 1200px; margin: 0 auto; padding: 36px 40px 64px; }
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+.page-head h1 {
+  font-family: var(--display);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-top: 8px;
+}
+.page-head .count { font-size: 13px; color: var(--text-3); padding-bottom: 6px; }
+.page-head .count strong { color: #c9c9d2; }
+
+/* =========================
+   02 — PROGRAMS
+   ========================= */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+
+.filter-pill {
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--line-hi);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: #c9c9d2;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.filter-pill:hover { border-color: var(--brand); color: var(--brand); }
+.filter-pill.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #0a0a0b;
+  font-weight: 700;
+}
+
+.search-shell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 300px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line-hi);
+  border-radius: 10px;
+  background: #0e0e10;
+  margin-left: auto;
+}
+.search-shell:focus-within { border-color: var(--brand); }
+.search-shell svg { stroke: #6f6f79; flex-shrink: 0; }
+.search-shell input {
+  flex: 1;
+  height: 38px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.program-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.program-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+.program-card:hover {
+  border-color: var(--line-hi);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
+.program-card .top { display: flex; align-items: center; gap: 10px; }
+.program-card .rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c9c9d2;
+}
+.program-card h2 {
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+}
+.program-card .seller { font-size: 13px; color: var(--text-3); }
+.program-card .body { display: flex; flex-direction: column; gap: 6px; min-height: 74px; }
+.program-card .headline {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.program-card .foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.program-card .price {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.cat-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: var(--surface-3);
+  color: #a8a8b2;
+}
+.cat-trading { background: #1a1f38; color: #93a8ff; }
+.cat-fitness { background: #2a1711; color: #ff9d73; }
+.cat-business { background: #16262f; color: #79bde6; }
+.cat-marketing { background: #221c36; color: #ad95ff; }
+.cat-general { background: var(--surface-3); color: #a8a8b2; }
+
+/* =========================
+   03 — CAMPAIGN
+   ========================= */
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.back-link:hover { color: var(--brand); }
+
+.campaign-hero {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+  padding-bottom: 26px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid var(--line);
+}
+.campaign-hero .headline-col { flex: 1; min-width: 0; }
+.campaign-hero h1 {
+  font-family: var(--display);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  margin: 12px 0 10px;
+}
+.campaign-hero .meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.campaign-hero .price-block { text-align: right; flex-shrink: 0; }
+.campaign-hero .price-block .amount {
+  font-family: var(--mono);
+  font-size: 34px;
+  font-weight: 500;
+  color: var(--text);
+}
+.campaign-hero .price-block .caption {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+
+.campaign-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 24px;
+  align-items: start;
+}
+.campaign-main { display: flex; flex-direction: column; gap: 24px; }
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  padding: 24px;
+}
+.card h3 {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.stat {
+  background: var(--surface-2);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat .k {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.stat .v { font-family: var(--mono); font-size: 16px; color: var(--text); }
+
+.pitch {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-left: 2px solid var(--brand);
+  background: #0e0e10;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #c9c9d2;
+}
+
+.link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: #0e0e10;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.link-row code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  color: #c9c9d2;
+}
+.btn-copy {
+  border: 1px solid var(--line-hi);
+  background: var(--surface-2);
+  color: #ddd;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-copy:hover { border-color: var(--brand); color: var(--brand); }
+
+.link-credit {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+.link-credit code {
+  font-family: var(--mono);
+  color: var(--brand);
+}
+
+.preview-frame {
+  width: 100%;
+  height: 460px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: #fff;
+}
+.preview-frame iframe { width: 100%; height: 100%; border: none; display: block; }
+
+.send-only { max-width: 580px; margin: 0 auto; }
+
+/* --- single / bulk switch --- */
+.mode-switch {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  margin-bottom: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0e0e10;
+}
+.mode-switch button {
+  flex: 1;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.mode-switch button:hover { color: var(--text); }
+.mode-switch button.is-on {
+  background: var(--brand);
+  color: #0a0a0b;
+  font-weight: 700;
+}
+
+/* --- file picker --- */
+.file-drop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px dashed var(--line-hi);
+  border-radius: var(--r);
+  background: #0e0e10;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.file-drop:hover { border-color: var(--brand); background: #12100f; }
+.file-drop svg { flex-shrink: 0; stroke: var(--text-3); }
+.file-drop .ft { font-size: 14px; font-weight: 600; color: var(--text); }
+.file-drop .fh { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+
+.recipient-summary {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: #0e0e10;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.recipient-summary strong { color: var(--text); }
+.recipient-summary .warn { color: var(--warn); }
+
+.recipient-list {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--text-3);
+}
+
+/* --- bulk progress --- */
+.send-progress { margin-top: 18px; }
+.progress-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.progress-track span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: var(--brand);
+  transition: width .25s ease;
+}
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-3);
+}
+.result-list {
+  max-height: 190px;
+  overflow-y: auto;
+  margin-top: 14px;
+  font-size: 12.5px;
+  line-height: 1.9;
+}
+.result-list div { display: flex; gap: 8px; }
+.result-list .ok { color: var(--ok); }
+.result-list .bad { color: var(--err); }
+.result-list .addr { flex: 1; font-family: var(--mono); color: var(--text-2); }
+.send-context {
+  margin: -6px 0 20px 0;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+.send-context strong { color: #c9c9d2; font-weight: 600; }
+
+.mail-status {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--text-3);
+  border-radius: var(--r-sm);
+  background: #0e0e10;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+.mail-status.is-ready { border-left-color: var(--ok); }
+.mail-status.is-blocked { border-left-color: var(--warn); }
+.mail-status strong { display: block; margin-bottom: 3px; color: #c9c9d2; font-weight: 700; }
+.mail-status code { font-family: var(--mono); color: var(--brand); font-size: 12px; }
+
+.acct-section {
+  margin: 0 0 14px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+.field-hint {
+  margin-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+.field-hint code { font-family: var(--mono); color: var(--brand); }
+
+/* A field that slides open instead of appearing. Animating max-height keeps
+   this to CSS alone; the inner wrapper carries the padding so the outer box
+   can collapse to exactly zero. */
+.collapsible {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height var(--slow) var(--ease), opacity var(--base) var(--ease);
+}
+.collapsible.is-open { max-height: 140px; opacity: 1; }
+.collapsible-inner { padding-bottom: 1px; }
+
+/* the words that change with the mode */
+.auth-swap { transition: opacity var(--fast) var(--ease); }
+.auth-swap.is-swapping { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .collapsible { transition: none; }
+  .auth-swap { transition: none; }
+}
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c9c9d2;
+}
+.form-control {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line-hi);
+  border-radius: var(--r-sm);
+  background: #0e0e10;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.form-control:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(250, 70, 22, 0.14);
+}
+
+.status-message {
+  margin-top: 14px;
+  padding: 11px 14px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  line-height: 1.5;
+  display: none;
+}
+.status-pending { display: block; background: #16161a; color: var(--text-2); border: 1px solid var(--line-hi); }
+.status-success { display: block; background: #12241a; color: #7fe3ab; border: 1px solid #24523a; }
+.status-error { display: block; background: #2a1616; color: var(--err); border: 1px solid #58292a; }
+
+/* =========================
+   EMPTY / LOADING
+   ========================= */
+
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 340px;
+  padding: 40px 24px;
+  border: 1px dashed var(--line-hi);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  text-align: center;
+  color: var(--text-2);
+}
+.empty-state svg { stroke: #6f6f79; }
+.empty-state h2 { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--text); }
+.empty-state p { max-width: 400px; font-size: 14px; line-height: 1.6; }
+.empty-state code { font-family: var(--mono); color: #c9c9d2; }
+
+/* =========================
+   TEMPLATE GALLERY
+   ========================= */
+
+.tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 24px;
+}
+
+.tpl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color .16s, transform .16s, box-shadow .16s;
+}
+.tpl-card:hover {
+  border-color: var(--line-hi);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+.tpl-card:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.tpl-card.is-picked {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 1px var(--brand), 0 14px 34px rgba(250, 70, 22, 0.14);
+}
+
+/* The thumbnail is the real template, rendered small.
+   iframe at 250% scaled to .4 lands back at exactly 100% of the card width. */
+.tpl-thumb {
+  position: relative;
+  height: 250px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.tpl-thumb iframe {
+  width: 250%;
+  height: 250%;
+  border: 0;
+  transform: scale(.4);
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.tpl-thumb::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 56px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,.92));
+  pointer-events: none;
+}
+
+.tpl-thumb.is-loading {
+  background: linear-gradient(90deg, #f3f3f4 0%, #e8e8ea 50%, #f3f3f4 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+.tpl-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 16px;
+}
+.tpl-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.tpl-check {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #0a0a0b;
+  opacity: 0;
+  transform: scale(.7);
+  transition: opacity .16s, transform .16s;
+}
+.tpl-card.is-picked .tpl-check { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tpl-card, .tpl-check { transition: none; }
+  .tpl-card:hover { transform: none; }
+  .tpl-thumb.is-loading { animation: none; }
+}
+
+/* =========================
+   TEMPLATE PREVIEW MODAL
+   ========================= */
+
+.tpl-modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  border: 1px solid var(--line-hi);
+  border-radius: 20px;
+  background: var(--bg);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.tpl-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.tpl-modal-head h3 {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.tpl-modal-head p { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+.tpl-modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  background: #ffffff;
+}
+.tpl-modal-body iframe {
+  width: 100%;
+  height: 900px;
+  border: 0;
+  display: block;
+}
+
+.tpl-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--line);
+}
+.tpl-modal-foot .btn { height: 46px; padding: 0 24px; font-size: 15px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tpl-modal-dialog { animation: none; }
+}
+
+@media (max-width: 700px) {
+  .tpl-modal-dialog { border-radius: 14px; }
+  .tpl-modal-body { max-height: 52vh; }
+}
+
+/* =========================
+   CAMPAIGN MODAL
+   ========================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+  background: rgba(6, 6, 7, 0.78);
+  backdrop-filter: blur(4px);
+}
+.modal[hidden] { display: none; }
+
+.modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 1080px;
+  border: 1px solid var(--line-hi);
+  border-radius: 20px;
+  background: var(--bg);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  padding: 32px 36px 36px;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-hi);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+}
+.modal-close:hover { background: var(--surface-3); color: var(--text); }
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.modal-foot .btn { height: 48px; padding: 0 24px; font-size: 15px; }
+
+@media (max-width: 600px) {
+  .modal-foot { flex-direction: column-reverse; align-items: stretch; }
+}
+
+.commission-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--warn);
+  border-radius: var(--r-sm);
+  background: #0e0e10;
+}
+.commission-note strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c9c9d2;
+}
+.commission-note span {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-dialog { animation: none; }
+}
+
+@media (max-width: 900px) {
+  .modal { padding: 16px 12px; }
+  .modal-dialog { padding: 26px 20px 28px; border-radius: 16px; }
+}
+
+/* =========================
+   MARKETPLACE INTRO + SCRAPE LOADER
+   ========================= */
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 430px;
+  padding: 48px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  text-align: center;
+}
+.stage[hidden] { display: none; }
+.stage h2 {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.stage p.lede-sm {
+  max-width: 470px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.stage-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--brand-dim);
+  border: 1px solid #45210f;
+}
+.stage-icon svg { stroke: var(--brand); }
+
+.spinner {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 3px solid var(--surface-3);
+  border-top-color: var(--brand);
+  animation: spin .9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.joke {
+  min-height: 62px;
+  max-width: 540px;
+  display: flex;
+  align-items: center;
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  transition: opacity .3s ease;
+}
+.joke.is-fading { opacity: 0; }
+
+.elapsed {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+  .joke { transition: none; }
+}
+
+.skeleton {
+  height: 202px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: linear-gradient(90deg, #141418 0%, #1c1c22 50%, #141418 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 1080px) {
+  .campaign-grid { grid-template-columns: minmax(0, 1fr); }
+  .send-card { position: static; }
+  .program-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .login-split { grid-template-columns: 1fr; }
+  .login-brand { padding: 40px 28px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .login-panel { padding: 40px 28px; }
+  .topbar { padding: 0 20px; }
+  .page { padding: 28px 20px 48px; }
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .program-grid { grid-template-columns: minmax(0, 1fr); }
+  .page-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .page-head h1 { font-size: 32px; }
+  .campaign-hero { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .campaign-hero .price-block { text-align: left; }
+  .campaign-hero h1 { font-size: 30px; }
+  .search-shell { width: 100%; margin-left: 0; }
+  .user-chip { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SPLASH / LOADER ============ -->
+<div id="splash" class="splash" role="status" aria-label="Loading Affiliate Outreach Agent">
+  <div class="splash-lockup">
+    <img src="whop-logo.png" alt="Whop" class="splash-logo" width="800" height="412">
+    <span class="splash-aoa">AOA</span>
+  </div>
+  <div class="splash-bar" aria-hidden="true"><span></span></div>
+</div>
+
+<!-- ============ SCREEN 01 — LOGIN ============ -->
+<section id="screenLogin" class="screen is-active">
+  <div class="login-split">
+
+    <div class="login-brand">
+      <div class="brand-row">
+        <img src="whop-logo.png" alt="Whop" class="brand-logo" width="800" height="412">
+        <span class="name">Affiliate Outreach Agent</span>
+      </div>
+
+      <div>
+        <h1>Pick the program.<br>We write the pitch.</h1>
+        <p class="lede">Live programs straight from the Whop marketplace, matched to a newsletter template by category, sent from your own Gmail.</p>
+      </div>
+
+      <div class="phase-rail">
+        <div class="phase here">
+          <span class="n">01</span>
+          <span class="label">Sign in to your account</span>
+          <span class="here-tag">YOU ARE HERE</span>
+        </div>
+        <div class="phase">
+          <span class="n">02</span>
+          <span class="label">Browse live programs and select one</span>
+        </div>
+        <div class="phase">
+          <span class="n">03</span>
+          <span class="label">Review the campaign, then send it</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-panel">
+      <div>
+        <h2 id="authTitle">Create account</h2>
+        <p class="sub" id="authSub">Your Whop username earns the commission; your email sends the newsletters.</p>
+      </div>
+
+      <form id="loginFormEl" novalidate>
+        <label class="field-label" for="username">WHOP USERNAME</label>
+        <div class="input-shell">
+          <span class="at">@</span>
+          <input id="username" spellcheck="false" autocapitalize="off" type="text" placeholder="yourwhopname" autocomplete="username" required>
+        </div>
+
+        <div id="emailField" class="collapsible is-open">
+          <div class="collapsible-inner">
+            <label class="field-label" for="email" style="margin-top: 18px;">EMAIL ADDRESS</label>
+            <div class="input-shell">
+              <input id="email" spellcheck="false" autocapitalize="off" type="email" placeholder="you@gmail.com" autocomplete="email" style="padding-left: 2px;">
+            </div>
+          </div>
+        </div>
+
+        <label class="field-label" for="password" style="margin-top: 18px;">PASSWORD</label>
+        <div class="input-shell">
+          <input id="password" type="password" placeholder="At least 8 characters" autocomplete="current-password" required style="padding-left: 2px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="margin-top: 22px;">
+          <span id="loginBtnLabel">Create account</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </button>
+
+        <p style="margin-top: 16px; font-size: 13.5px; color: var(--text-3);">
+          <span id="authSwitchText">Already have an account?</span>
+          <button type="button" id="authSwitch" style="border:0;background:none;padding:0;font:inherit;color:var(--brand);cursor:pointer;text-decoration:underline;">Sign in instead</button>
+        </p>
+
+        <div id="loginError" class="status-message" style="margin-top: 16px;"></div>
+      </form>
+
+      <div class="note">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <p>Your username is kept for this session only. Close the tab and you will sign in again next visit.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ APP SHELL (screens 02 &amp; 03) ============ -->
+<div id="appShell" hidden>
+
+  <header class="topbar">
+    <img src="whop-logo.png" alt="Whop" class="brand-logo" width="800" height="412">
+    <span style="font-size: 15px; font-weight: 600; color: #c9c9d2;">Affiliate Outreach Agent</span>
+
+
+    <span class="spacer"></span>
+
+    <span class="pill" id="liveStatus">
+      <img src="img/apify-logo.svg" alt="Apify" class="apify-mark" width="16" height="16">
+      <span id="liveStatusText">Apify web scraper live</span>
+      <span class="dot"></span>
+    </span>
+
+    <button type="button" class="btn-icon" id="syncBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+      <span id="syncBtnLabel">Sync</span>
+    </button>
+
+    <span class="user-chip"><span class="avatar" id="userInitial">A</span><span id="userHandle">@you</span></span>
+
+    <button type="button" class="btn-icon" id="signOutBtn" aria-label="Sign out">Sign out</button>
+  </header>
+
+  <!-- ============ SCREEN 02 — PROGRAMS ============ -->
+  <section id="screenPrograms" class="screen">
+    <div class="page">
+      <div class="page-head">
+        <div style="flex: 1;">
+          <h1>Choose a program</h1>
+        </div>
+        <p class="count" id="totalCount">Loading live programs…</p>
+      </div>
+
+      <div class="toolbar" id="programToolbar" hidden>
+        <button type="button" class="filter-pill active" data-cat="all">All</button>
+        <button type="button" class="filter-pill" data-cat="trading">Trading &amp; Bets</button>
+        <button type="button" class="filter-pill" data-cat="business">Business &amp; Coaching</button>
+        <button type="button" class="filter-pill" data-cat="marketing">Marketing &amp; UGC</button>
+        <button type="button" class="filter-pill" data-cat="fitness">Fitness &amp; Health</button>
+
+        <div class="search-shell">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <label for="searchInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;">Search programs</label>
+          <input id="searchInput" type="text" placeholder="Search programs or sellers">
+        </div>
+      </div>
+
+      <div class="stage" id="marketplaceIntro">
+        <div class="stage-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18l-1.4-4.2A2 2 0 0 0 17.7 3H6.3a2 2 0 0 0-1.9 1.8L3 9Z"/><path d="M4 9v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"/><path d="M9 13h6"/></svg>
+        </div>
+        <h2>Ready when you are</h2>
+        <p class="lede-sm">We'll pull live programs from the Whop marketplace and sort them into your four niches. The first run takes a minute; after that it's instant.</p>
+        <button type="button" class="btn btn-primary" id="browseBtn" style="height: 52px; padding: 0 26px; font-size: 15px;">
+          Browse marketplace
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <div class="stage" id="scrapeLoader" hidden>
+        <span class="sr-only" role="status">Loading programs from the Whop marketplace.</span>
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="joke" id="jokeLine" aria-hidden="true"></p>
+        <p class="elapsed" id="elapsedLine" aria-hidden="true">Scraping Whop &hellip; 0s</p>
+      </div>
+
+      <div class="program-grid" id="programGrid" hidden></div>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN 03 — CAMPAIGN ============ -->
+  <div id="campaignModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="campaignName">
+    <div class="modal-dialog">
+      <button type="button" class="modal-close" id="backToPrograms" aria-label="Close campaign">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <div class="campaign-hero">
+        <div class="headline-col">
+          <h1 id="campaignName">—</h1>
+          <div class="meta">
+            <span class="cat-tag cat-general" id="campaignCat">GENERAL</span>
+            <span id="campaignSeller">—</span>
+          </div>
+        </div>
+        <div class="price-block">
+          <div class="caption">Price</div>
+          <div class="amount" id="campaignPrice">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Campaign details</h3></div>
+
+        <div class="stat-grid">
+          <div class="stat"><span class="k">Commission</span><span class="v" id="statCommission">—</span></div>
+          <div class="stat"><span class="k">Rating</span><span class="v" id="statRating">—</span></div>
+          <div class="stat"><span class="k">Members</span><span class="v" id="statMembers">—</span></div>
+          <div class="stat"><span class="k">Category</span><span class="v" id="statCategory">—</span></div>
+        </div>
+
+        <div class="commission-note">
+          <strong>Commission shown is the typical Whop range</strong>
+          <span>For the exact rate on this program, open the campaign on Whop &mdash; each creator sets their own.</span>
+        </div>
+
+        <p class="pitch" id="campaignPitch">—</p>
+
+        <div class="link-row">
+          <span>Referral link</span>
+          <code id="affiliateUrlText">—</code>
+          <button type="button" class="btn-copy" id="copyLinkBtn">Copy</button>
+        </div>
+        <p class="link-credit">Tagged <code id="affiliateTag">?a=</code> &mdash; every click on this link is credited to your Whop account.</p>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" id="cancelCampaign">Back to programs</button>
+        <button type="button" class="btn btn-primary" id="proceedBtn">
+          Proceed
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 04 — CHOOSE A TEMPLATE ============ -->
+  <section id="screenTemplates" class="screen">
+    <div class="page">
+      <button type="button" class="back-link" id="backToCampaignFromTemplates">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+        Campaign details
+      </button>
+
+      <div class="page-head">
+        <div style="flex: 1;">
+          <h1>Pick a newsletter</h1>
+          <p style="margin-top: 8px; font-size: 15px; color: var(--text-2);">Every one below is rendered with this campaign's real details. Choose whichever reads best.</p>
+        </div>
+      </div>
+
+      <div class="tpl-grid" id="templateList" role="radiogroup" aria-label="Newsletter template"></div>
+    </div>
+  </section>
+
+  <!-- ============ TEMPLATE PREVIEW POPUP ============ -->
+  <div id="templateModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="tplModalName">
+    <div class="tpl-modal-dialog">
+      <div class="tpl-modal-head">
+        <div style="flex: 1;">
+          <h3 id="tplModalName">Sample</h3>
+          <p id="tplModalBlurb">&nbsp;</p>
+        </div>
+        <button type="button" class="modal-close" id="tplModalClose" style="position: static;" aria-label="Close preview">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="tpl-modal-body">
+        <iframe id="tplModalFrame" title="Template preview"></iframe>
+      </div>
+
+      <div class="tpl-modal-foot">
+        <button type="button" class="btn btn-ghost" id="tplModalCancel">Back to templates</button>
+        <button type="button" class="btn btn-primary" id="tplProceedBtn">
+          Proceed
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONNECT MAILBOX POPUP ============ -->
+  <div id="mailboxModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mailboxTitle">
+    <div class="tpl-modal-dialog" style="max-width: 560px;">
+      <div class="tpl-modal-head">
+        <div style="flex: 1;">
+          <h3 id="mailboxTitle">Connect your mailbox</h3>
+          <p>Newsletters go out from your own email, not ours.</p>
+        </div>
+        <button type="button" class="modal-close" id="mailboxClose" style="position: static;" aria-label="Close">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div style="padding: 24px;">
+
+        <p class="field-hint" style="margin: 0 0 18px 0;">
+          Commission goes to <code id="whopTagPreview">?a=</code> &mdash; set when you created the account.
+        </p>
+
+        <div class="form-group">
+          <label for="mbAddress">Your email address</label>
+          <input id="mbAddress" spellcheck="false" autocapitalize="off" class="form-control" type="email" placeholder="you@gmail.com" autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label for="mbPassword">App password</label>
+          <input id="mbPassword" class="form-control" type="password" placeholder="16 characters from Google" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label for="mbFromName">Display name (optional)</label>
+          <input id="mbFromName" spellcheck="false" autocapitalize="off" class="form-control" type="text" placeholder="How your name appears to recipients">
+        </div>
+
+        <details id="mbAdvanced" style="margin-top: 4px;">
+          <summary style="cursor:pointer;font-size:13px;color:var(--text-3);">Not a Gmail address? Set SMTP manually</summary>
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <div class="form-group" style="flex:2;margin-bottom:0;">
+              <label for="mbHost">SMTP host</label>
+              <input id="mbHost" class="form-control" type="text" placeholder="smtp.yourhost.com">
+            </div>
+            <div class="form-group" style="flex:1;margin-bottom:0;">
+              <label for="mbPort">Port</label>
+              <input id="mbPort" class="form-control" type="number" placeholder="465">
+            </div>
+          </div>
+        </details>
+
+        <div class="note" style="margin-top: 18px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <p>Use a Google <strong>App Password</strong>, never your normal password. Turn on 2-Step Verification, then generate one at <span style="color:var(--brand);">myaccount.google.com/apppasswords</span>. It is encrypted before being stored and never sent back to your browser.</p>
+        </div>
+
+        <div id="mailboxError" class="status-message"></div>
+      </div>
+
+      <div class="tpl-modal-foot">
+        <button type="button" class="btn btn-ghost" id="mailboxDisconnect" hidden>Disconnect</button>
+        <button type="button" class="btn btn-primary" id="mailboxSave">Connect and verify</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 05 — SEND ============ -->
+  <section id="screenSend" class="screen">
+    <div class="page">
+      <button type="button" class="back-link" id="backToCampaign">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+        Choose a template
+      </button>
+
+      <div class="page-head">
+        <div style="flex: 1;">
+          <h1 id="sendCampaignName">—</h1>
+        </div>
+      </div>
+
+      <div class="send-only">
+        <div class="card">
+          <div class="card-head"><h3>Send to lead</h3></div>
+
+          <p class="send-context" id="sendContext">&nbsp;</p>
+
+          <div class="mail-status" id="mailStatus" hidden></div>
+
+          <div class="mode-switch" role="tablist" aria-label="How many leads">
+            <button type="button" id="modeSingle" class="is-on" role="tab" aria-selected="true">Single lead</button>
+            <button type="button" id="modeBulk" role="tab" aria-selected="false">Bulk from file</button>
+          </div>
+
+          <div class="form-group" id="singleBlock">
+            <label for="leadEmail">Lead email address</label>
+            <input id="leadEmail" spellcheck="false" autocapitalize="off" class="form-control" type="email" placeholder="client@example.com">
+          </div>
+
+          <div class="form-group" id="bulkBlock" hidden>
+            <label for="leadFile">Recipient list</label>
+            <label class="file-drop" for="leadFile">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v5h5"/><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2Z"/><path d="M9 14h6"/><path d="M9 17h3"/></svg>
+              <span>
+                <span class="ft" id="fileName">Choose a .csv or .txt file</span>
+                <span class="fh">One email per line, or a CSV with an email column</span>
+              </span>
+            </label>
+            <input id="leadFile" type="file" accept=".csv,.txt,text/csv,text/plain" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">
+            <div id="recipientSummary" class="recipient-summary" hidden></div>
+          </div>
+
+          <div class="form-group">
+            <label for="emailSubject">Subject line</label>
+            <input id="emailSubject" spellcheck="false" autocapitalize="off" class="form-control" type="text" placeholder="Thought you'd like this">
+          </div>
+
+          <div class="form-group">
+            <label for="senderName">Your sender name</label>
+            <input id="senderName" spellcheck="false" autocapitalize="off" class="form-control" type="text">
+          </div>
+
+          <button type="button" class="btn btn-primary btn-lg" id="sendBtn" style="margin-top: 10px;">Send newsletter</button>
+          <div id="statusAlert" class="status-message"></div>
+
+          <div id="sendProgress" class="send-progress" hidden>
+            <div class="progress-track"><span id="progressBar"></span></div>
+            <div class="progress-label">
+              <span id="progressCount">0 of 0</span>
+              <span id="progressTally">&nbsp;</span>
+            </div>
+            <div id="resultList" class="result-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const API = "http://localhost:4000";
+
+/* ---------- motion ----------
+   Every animation goes through `mo`. GSAP is loaded with `defer` from a CDN and
+   may be blocked or slow, and some people ask their OS to stop motion, so each
+   helper has to leave the page correct without ever running. The rule is that
+   nothing is *revealed* by an animation alone. */
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const mo = {
+  get on() {
+    return !reduceMotion && typeof window.gsap !== "undefined";
+  },
+
+  /** Animate in from an offset state. Elements end at their natural values. */
+  from(targets, vars) {
+    const list = typeof targets === "string"
+      ? Array.from(document.querySelectorAll(targets))
+      : (Array.isArray(targets) ? targets : [targets]).filter(Boolean);
+    if (!list.length) return null;
+
+    if (!this.on) {
+      list.forEach((el) => { el.style.opacity = ""; el.style.transform = ""; });
+      return null;
+    }
+    return window.gsap.from(list, vars);
+  },
+
+  to(targets, vars) {
+    if (!this.on) {
+      if (vars && typeof vars.onComplete === "function") vars.onComplete();
+      return null;
+    }
+    return window.gsap.to(targets, vars);
+  },
+
+  /** Reveal elements the stylesheet deliberately left at opacity 0. */
+  reveal(targets, vars = {}) {
+    const list = Array.from(
+      typeof targets === "string" ? document.querySelectorAll(targets) : targets
+    );
+    if (!list.length) return;
+
+    if (!this.on) {
+      list.forEach((el) => { el.style.opacity = "1"; el.style.transform = "none"; });
+      return;
+    }
+    window.gsap.fromTo(list,
+      { opacity: 0, y: vars.y ?? 16, scale: vars.scale ?? 1 },
+      {
+        opacity: 1, y: 0, scale: 1,
+        duration: vars.duration ?? 0.5,
+        ease: vars.ease ?? "power3.out",
+        stagger: vars.stagger ?? 0.045,
+        clearProps: "transform",
+      });
+  },
+
+  /** Count a number up. Falls back to writing the final value. */
+  count(el, to, { duration = 0.9, format = (v) => Math.round(v) } = {}) {
+    if (!el) return;
+    if (!this.on) { el.textContent = format(to); return; }
+
+    const obj = { v: 0 };
+    window.gsap.to(obj, {
+      v: to,
+      duration,
+      ease: "power2.out",
+      onUpdate: () => { el.textContent = format(obj.v); },
+    });
+  },
+};
+
+if (reduceMotion) document.documentElement.classList.add("no-motion");
+
+// Nothing should stay invisible because a CDN was slow
+window.addEventListener("load", () => {
+  if (typeof window.gsap === "undefined") {
+    document.documentElement.classList.add("no-motion");
+  }
+});
+
+/** A press ripple, positioned where the click landed. */
+function attachRipples() {
+  document.addEventListener("pointerdown", (e) => {
+    const btn = e.target.closest(".btn");
+    if (!btn || reduceMotion || typeof window.gsap === "undefined") return;
+
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 1.6;
+    const dot = document.createElement("span");
+    dot.className = "ripple";
+    dot.style.width = dot.style.height = `${size}px`;
+    dot.style.left = `${e.clientX - rect.left - size / 2}px`;
+    dot.style.top = `${e.clientY - rect.top - size / 2}px`;
+    btn.appendChild(dot);
+
+    window.gsap.to(dot, {
+      scale: 1, opacity: 0, duration: 0.55, ease: "power2.out",
+      onComplete: () => dot.remove(),
+    });
+  });
+}
+
+/** fetch() with the session token attached. */
+function authFetch(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
+  if (options.body && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
+  return fetch(`${API}${path}`, { ...options, headers });
+}
+
+let allBusinesses = [];
+let filteredBusinesses = [];
+let selectedBusiness = null;
+let currentCategory = "all";
+let currentUsername = null;
+let authToken = null;            // in memory only, so a refresh signs you out
+let authMode = "register";       // "login" | "register" - new visitors land here
+let connectedMailbox = null;
+let whopHandle = "";             // the Whop account links are credited to
+let accountEmail = "";           // the address registered, prefills the mailbox form
+let lastSync = null;
+let servedFromCache = false;
+
+/* ---------- screen router ---------- */
+
+let templates = [];
+let selectedTemplate = null;
+
+/** The campaign popup sits over the programs screen rather than replacing it. */
+/** Both popups come in the same way: backdrop fades, dialog springs. */
+function springOpen(modal) {
+  const dialog = modal.querySelector(".modal-dialog, .tpl-modal-dialog");
+  mo.from(modal, { opacity: 0, duration: 0.2, ease: "power2.out" });
+  mo.from(dialog, { y: 22, scale: 0.97, opacity: 0, duration: 0.42, ease: "back.out(1.4)" });
+}
+
+function openCampaignModal() {
+  const el = document.getElementById("campaignModal");
+  el.classList.remove("is-closing");
+  el.hidden = false;
+  springOpen(el);
+  document.body.style.overflow = "hidden";
+  document.getElementById("backToPrograms").focus();
+}
+
+/**
+ * Play the exit animation, then hide. Falls back to hiding immediately when
+ * the animation never fires (reduced motion, background tab).
+ */
+function closeWithAnimation(el, done) {
+  if (el.hidden) return;
+  el.classList.add("is-closing");
+
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+
+    // Reopened while the exit was still playing: the open call cleared
+    // is-closing, so leave it alone rather than hiding what just opened.
+    if (!el.classList.contains("is-closing")) return;
+
+    el.classList.remove("is-closing");
+    el.hidden = true;
+    document.body.style.overflow = "";
+    if (done) done();
+  };
+
+  el.addEventListener("animationend", finish, { once: true });
+  setTimeout(finish, 320);
+}
+
+function closeCampaignModal() {
+  closeWithAnimation(document.getElementById("campaignModal"));
+}
+
+/** Leave the details popup and open the template chooser. */
+async function proceedToTemplates() {
+  if (!selectedBusiness) return;
+  closeCampaignModal();
+  showScreen("screenTemplates");
+  await loadTemplates();
+}
+
+/* ---------- 04 template chooser ---------- */
+
+/** The query a preview request needs, for one template. */
+function previewParams(templateId) {
+  const sender = document.getElementById("senderName").value || currentUsername || "You";
+  return new URLSearchParams({
+    category: selectedBusiness.category || "",
+    name: selectedBusiness.name || "",
+    link: selectedBusiness.link || "",
+    headline: selectedBusiness.headline || "",
+    price: selectedBusiness.price || "",
+    seller: selectedBusiness.seller || "",
+    sender: sender,
+    username: currentUsername || "",
+    template: templateId || "",
+    image: selectedBusiness.imageUrl || "",
+  });
+}
+
+async function fetchPreview(templateId) {
+  const res = await fetch(`${API}/api/template-preview?${previewParams(templateId)}`);
+  if (!res.ok) throw new Error(`preview failed (${res.status})`);
+  return res.json();
+}
+
+async function loadTemplates() {
+  const listEl = document.getElementById("templateList");
+  listEl.innerHTML = "";
+
+  let json;
+  try {
+    const res = await fetch(`${API}/api/templates`);
+    if (!res.ok) throw new Error(`templates failed (${res.status})`);
+    json = await res.json();
+  } catch (err) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <h2>Couldn't load the templates</h2>
+        <p>${esc(err.message)}. Make sure the backend is running, then reload.</p>
+      </div>`;
+    return;
+  }
+
+  templates = json.data || [];
+  if (!selectedTemplate) selectedTemplate = json.autoMatch || "general";
+
+  renderTemplateCards();
+
+  // Render all eight thumbnails at once, each with this campaign's real details
+  await Promise.all(
+    templates.map(async (t) => {
+      const thumb = document.querySelector(`.tpl-thumb[data-for="${t.id}"]`);
+      if (!thumb) return;
+      try {
+        const data = await fetchPreview(t.id);
+        thumb.querySelector("iframe").srcdoc = data.html;
+        thumb.classList.remove("is-loading");
+        requestAnimationFrame(() => thumb.classList.add("is-ready"));
+      } catch (err) {
+        thumb.classList.remove("is-loading");
+        thumb.innerHTML = `<p style="padding:20px;font-size:13px;color:#b91c1c;">Preview unavailable</p>`;
+      }
+    })
+  );
+}
+
+function renderTemplateCards() {
+  const listEl = document.getElementById("templateList");
+  listEl.innerHTML = "";
+
+  templates.forEach((t, i) => {
+    const picked = t.id === selectedTemplate;
+
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "tpl-card" + (picked ? " is-picked" : "");
+    card.style.setProperty("--i", String(i));
+    card.setAttribute("role", "radio");
+    card.setAttribute("aria-checked", String(picked));
+    card.innerHTML = `
+      <span class="tpl-thumb is-loading" data-for="${esc(t.id)}">
+        <iframe title="${esc(t.name)} preview" scrolling="no" tabindex="-1"></iframe>
+      </span>
+      <span class="tpl-foot">
+        <span class="tpl-name">${esc(t.name)}</span>
+        <span style="flex:1"></span>
+        <span class="tpl-check" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+        </span>
+      </span>`;
+
+    card.addEventListener("click", () => openTemplateModal(t.id));
+    listEl.appendChild(card);
+  });
+
+  mo.reveal(listEl.querySelectorAll(".tpl-card"), { y: 20, stagger: 0.05 });
+}
+
+/** Swap the selection without re-rendering the thumbnails. */
+function pickTemplate(id) {
+  selectedTemplate = id;
+  document.querySelectorAll(".tpl-card").forEach((card) => {
+    const thumbId = card.querySelector(".tpl-thumb").dataset.for;
+    const on = thumbId === id;
+    card.classList.toggle("is-picked", on);
+    card.setAttribute("aria-checked", String(on));
+  });
+}
+
+/* ---------- template preview popup ---------- */
+
+async function openTemplateModal(id) {
+  pickTemplate(id);
+
+  const t = templates.find((x) => x.id === id);
+  document.getElementById("tplModalName").textContent = t ? t.name : "Preview";
+  document.getElementById("tplModalBlurb").textContent = t ? t.blurb : "";
+
+  const frame = document.getElementById("tplModalFrame");
+  frame.srcdoc = "";
+
+  const modal = document.getElementById("templateModal");
+  modal.classList.remove("is-closing");
+  modal.hidden = false;
+  springOpen(modal);
+  document.body.style.overflow = "hidden";
+  document.getElementById("tplProceedBtn").focus();
+
+  // Reuse the thumbnail's markup rather than refetching
+  const thumb = document.querySelector(`.tpl-thumb[data-for="${id}"] iframe`);
+  if (thumb && thumb.srcdoc) {
+    frame.srcdoc = thumb.srcdoc;
+    return;
+  }
+
+  try {
+    const data = await fetchPreview(id);
+    frame.srcdoc = data.html;
+  } catch (err) {
+    console.error("Template preview failed:", err);
+  }
+}
+
+function closeTemplateModal() {
+  closeWithAnimation(document.getElementById("templateModal"));
+}
+
+/* ---------- connect your own mailbox ---------- */
+
+async function openMailboxModal() {
+  const modal = document.getElementById("mailboxModal");
+  modal.classList.remove("is-closing");
+  modal.hidden = false;
+  springOpen(modal);
+  document.body.style.overflow = "hidden";
+
+  const err = document.getElementById("mailboxError");
+  err.className = "status-message";
+  err.textContent = "";
+
+  try {
+    const res = await authFetch("/api/mailbox");
+    const data = await res.json();
+    connectedMailbox = data.mailbox || null;
+    whopHandle = data.whopUsername || whopHandle;
+    accountEmail = data.email || accountEmail;
+    document.getElementById("whopTagPreview").textContent =
+      whopHandle ? `?a=${whopHandle}` : "not set";
+  } catch (e) { /* leave whatever we knew */ }
+
+  const disconnect = document.getElementById("mailboxDisconnect");
+  if (connectedMailbox && connectedMailbox.address) {
+    document.getElementById("mbAddress").value = connectedMailbox.address;
+    document.getElementById("mbFromName").value = connectedMailbox.fromName || "";
+    disconnect.hidden = false;
+  } else {
+    // Prefill with the address they registered, so there is one less thing to type
+    document.getElementById("mbAddress").value = accountEmail;
+    disconnect.hidden = true;
+  }
+
+  document.getElementById("mbAddress").focus();
+}
+
+function closeMailboxModal() {
+  closeWithAnimation(document.getElementById("mailboxModal"));
+}
+
+async function saveMailbox() {
+  const btn = document.getElementById("mailboxSave");
+  const err = document.getElementById("mailboxError");
+
+  const address = document.getElementById("mbAddress").value.trim();
+  const password = document.getElementById("mbPassword").value;
+  const fromName = document.getElementById("mbFromName").value.trim();
+  const host = document.getElementById("mbHost").value.trim();
+  const port = document.getElementById("mbPort").value.trim();
+
+  btn.disabled = true;
+  err.className = "status-message status-pending";
+  err.textContent = "Saving\u2026";
+
+  try {
+    if (!address || !password) {
+      throw new Error("Enter your email address and its app password.");
+    }
+
+    err.textContent = "Checking those details with the mail server\u2026";
+
+    const res = await authFetch("/api/mailbox", {
+      method: "PUT",
+      body: JSON.stringify({ address, password, fromName, host, port }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not connect that mailbox");
+
+    connectedMailbox = data.mailbox;
+    document.getElementById("mbPassword").value = "";
+    err.className = "status-message status-success";
+    err.textContent = `Connected. Mail will send from ${data.mailbox.address}.`;
+
+    setTimeout(() => { closeMailboxModal(); checkMailStatus(); }, 900);
+  } catch (e) {
+    err.className = "status-message status-error";
+    err.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function disconnectMailbox() {
+  const err = document.getElementById("mailboxError");
+  try {
+    await authFetch("/api/mailbox", { method: "DELETE" });
+    connectedMailbox = null;
+    document.getElementById("mbAddress").value = "";
+    document.getElementById("mbPassword").value = "";
+    document.getElementById("mailboxDisconnect").hidden = true;
+    err.className = "status-message status-pending";
+    err.textContent = "Mailbox disconnected.";
+    checkMailStatus();
+  } catch (e) {
+    err.className = "status-message status-error";
+    err.textContent = e.message;
+  }
+}
+
+/** Report up front whether mail can actually leave the machine. */
+async function checkMailStatus() {
+  const box = document.getElementById("mailStatus");
+  box.hidden = false;
+  box.className = "mail-status";
+  box.innerHTML = "<span>Checking the mail connection…</span>";
+
+  try {
+    const res = await authFetch("/api/mail-status");
+    const data = await res.json();
+
+    if (data.configured) {
+      box.classList.add("is-ready");
+      connectedMailbox = { address: data.account };
+      box.innerHTML =
+        `<span><strong>Sending from ${esc(data.account || "your account")}</strong>` +
+        `Mail leaves from your own mailbox. ` +
+        `<button type="button" id="connectMailboxLink" style="border:0;background:none;padding:0;font:inherit;color:var(--brand);cursor:pointer;text-decoration:underline;">Change</button></span>`;
+      mailReady = true;
+      const link = document.getElementById("connectMailboxLink");
+      if (link) link.addEventListener("click", openMailboxModal);
+    } else {
+      box.classList.add("is-blocked");
+      box.innerHTML =
+        `<span><strong>No email account connected</strong>` +
+        `${esc(data.reason || "")} ` +
+        `<button type="button" id="connectMailboxLink" style="border:0;background:none;padding:0;font:inherit;color:var(--brand);cursor:pointer;text-decoration:underline;">Connect your email</button></span>`;
+      mailReady = false;
+      const link = document.getElementById("connectMailboxLink");
+      if (link) link.addEventListener("click", openMailboxModal);
+    }
+  } catch (err) {
+    box.classList.add("is-blocked");
+    box.innerHTML = `<span><strong>Couldn't check the mail connection</strong>${esc(err.message)}</span>`;
+    mailReady = false;
+  }
+}
+
+/** Confirm this template and move on to sending. */
+function proceedToSend() {
+  closeTemplateModal();
+
+  const t = templates.find((x) => x.id === selectedTemplate);
+  document.getElementById("sendContext").innerHTML =
+    `Sending the <strong>${esc(t ? t.name : selectedTemplate)}</strong> newsletter for ` +
+    `<strong>${esc(selectedBusiness.name)}</strong>, with your affiliate link attached.`;
+
+  showScreen("screenSend");
+  mo.from(".send-only .form-group, .send-only .mode-switch, .send-only #sendBtn", {
+    y: 14, opacity: 0, duration: 0.45, ease: "power3.out", stagger: 0.06,
+  });
+  checkMailStatus();
+}
+
+/* ---------- screen router ---------- */
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach((sc) => sc.classList.remove("is-active"));
+  document.getElementById(id).classList.add("is-active");
+  document.getElementById("appShell").hidden = (id === "screenLogin");
+  window.scrollTo(0, 0);
+}
+
+/* ---------- splash ---------- */
+
+const SPLASH_MS = 1700;   // how long the loader holds before the login screen
+
+function dismissSplash() {
+  const splash = document.getElementById("splash");
+  if (!splash || splash.hidden) return;
+
+  playLoginEntrance();
+  splash.classList.add("is-out");
+  splash.addEventListener("transitionend", () => {
+    splash.hidden = true;
+    document.getElementById("username").focus();
+  }, { once: true });
+
+  // Fallback in case the transition never fires (reduced motion, background tab)
+  setTimeout(() => {
+    if (!splash.hidden) {
+      splash.hidden = true;
+      document.getElementById("username").focus();
+    }
+  }, 700);
+}
+
+/** The opening beat: the lockup builds, then the login panel arrives. */
+function playIntro() {
+  if (!mo.on) return;
+
+  const tl = window.gsap.timeline();
+  tl.from(".splash-logo", { scale: 0.7, opacity: 0, duration: 0.55, ease: "back.out(1.7)" })
+    .from(".splash-aoa", { x: -18, opacity: 0, duration: 0.45, ease: "power3.out" }, "-=0.3")
+    .from(".splash-bar", { opacity: 0, duration: 0.3 }, "-=0.25");
+}
+
+function playLoginEntrance() {
+  mo.from(".login-brand .brand-row", { y: -12, opacity: 0, duration: 0.5, ease: "power3.out" });
+  mo.from(".login-brand h1", { y: 20, opacity: 0, duration: 0.6, ease: "power3.out", delay: 0.05 });
+  mo.from(".login-brand .lede", { y: 16, opacity: 0, duration: 0.5, ease: "power3.out", delay: 0.12 });
+  mo.from(".phase-rail .phase", { x: -14, opacity: 0, duration: 0.45, ease: "power3.out", stagger: 0.07, delay: 0.18 });
+  mo.from(".login-panel > *", { y: 18, opacity: 0, duration: 0.55, ease: "power3.out", stagger: 0.08, delay: 0.1 });
+}
+
+/* Every visit starts at the login screen - returning users sign in again too */
+window.addEventListener("DOMContentLoaded", () => {
+  try { localStorage.removeItem("whopUsername"); } catch (e) {}
+  currentUsername = null;
+  setAuthMode("register", false);
+  showScreen("screenLogin");
+  attachRipples();
+  playIntro();
+  setTimeout(dismissSplash, SPLASH_MS);
+});
+
+/* ---------- 01 login ---------- */
+
+function setAuthMode(mode, animate = true) {
+  authMode = mode;
+  const registering = mode === "register";
+
+  const title = document.getElementById("authTitle");
+  const sub = document.getElementById("authSub");
+  const btn = document.getElementById("loginBtnLabel");
+  const switchText = document.getElementById("authSwitchText");
+  const switchLink = document.getElementById("authSwitch");
+  const swappers = [title, sub, btn, switchText, switchLink];
+
+  const applyText = () => {
+    title.textContent = registering ? "Create account" : "Sign in";
+    sub.textContent = registering
+      ? "Your Whop username earns the commission; your email sends the newsletters."
+      : "Welcome back. Your username and password are all we need.";
+    btn.textContent = registering ? "Create account" : "Sign in";
+    switchText.textContent = registering ? "Already have an account?" : "New here?";
+    switchLink.textContent = registering ? "Sign in instead" : "Create an account";
+  };
+
+  // Cross-fade the wording rather than letting it flicker mid-sentence
+  if (animate) {
+    swappers.forEach((el) => { el.classList.add("auth-swap", "is-swapping"); });
+    setTimeout(() => {
+      applyText();
+      swappers.forEach((el) => el.classList.remove("is-swapping"));
+    }, 140);
+  } else {
+    swappers.forEach((el) => el.classList.add("auth-swap"));
+    applyText();
+  }
+
+  document.getElementById("password").setAttribute(
+    "autocomplete", registering ? "new-password" : "current-password");
+
+  // Only needed to create the account; signing in just needs the handle
+  document.getElementById("emailField").classList.toggle("is-open", registering);
+
+  const err = document.getElementById("loginError");
+  err.className = "status-message";
+  err.textContent = "";
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const nameEl = document.getElementById("username");
+  const passEl = document.getElementById("password");
+  const errEl = document.getElementById("loginError");
+
+  const username = nameEl.value.trim();
+  const password = passEl.value;
+
+  errEl.className = "status-message";
+  errEl.textContent = "";
+
+  if (!username) {
+    errEl.className = "status-message status-error";
+    errEl.textContent = "Please enter your username.";
+    nameEl.focus();
+    return;
+  }
+  if (!password) {
+    errEl.className = "status-message status-error";
+    errEl.textContent = "Please enter your password.";
+    passEl.focus();
+    return;
+  }
+
+  const route = authMode === "register" ? "/api/register" : "/api/login";
+
+  try {
+    const payload = { username, password };
+    if (authMode === "register") payload.email = document.getElementById("email").value.trim();
+
+    const res = await fetch(`${API}${route}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // A name from before accounts existed: offer to claim it
+      if (data.needsRegister) {
+        setAuthMode("register");
+        errEl.className = "status-message status-pending";
+        errEl.textContent = data.error + " Set one above and press Create account.";
+        passEl.focus();
+        return;
+      }
+      throw new Error(data.error || "Sign in failed");
+    }
+
+    authToken = data.token;
+    currentUsername = username;
+    whopHandle = (data.user && data.user.username) || username;
+    accountEmail = (data.user && data.user.email) || "";
+    connectedMailbox = data.mailbox || null;
+
+    document.getElementById("userHandle").textContent = "@" + username;
+    document.getElementById("userInitial").textContent = username.charAt(0).toUpperCase();
+    document.getElementById("senderName").value = username;
+
+    nameEl.value = "";
+    passEl.value = "";
+    document.getElementById("email").value = "";
+    showScreen("screenPrograms");
+    showProgramsState("intro");
+  } catch (error) {
+    errEl.className = "status-message status-error";
+    errEl.textContent = error.message.includes("fetch")
+      ? `Can't reach the backend at ${API}. Run npm run dev in backend/.`
+      : error.message;
+  }
+}
+
+function signOut() {
+  if (authToken) {
+    authFetch("/api/logout", { method: "POST", body: "{}" }).catch(() => {});
+  }
+  authToken = null;
+  connectedMailbox = null;
+  setAuthMode("register", false);
+  currentUsername = null;
+  selectedBusiness = null;
+  selectedTemplate = null;
+  allBusinesses = [];
+  filteredBusinesses = [];
+  document.getElementById("loginError").className = "status-message";
+  stopScrapeTheatre();
+  closeCampaignModal();
+  closeTemplateModal();
+  showProgramsState("intro");
+  showScreen("screenLogin");
+}
+
+/* ---------- 02 programs ---------- */
+
+const SCRAPE_JOKES = [
+  "Reading 48 sales pages so you don't have to.",
+  "Counting how many programs promise a Lamborghini. It's a lot.",
+  "Teaching the scraper the difference between a trading bot and a trading bro.",
+  "Politely refreshing someone's discover page twelve times.",
+  "Checking whether 'passive income' is, in fact, passive.",
+  "Sorting the gurus from the actually-quite-good.",
+  "Filing the crypto ones under Trading and the vibes under General.",
+  "Convincing the fitness listings that they are not trading listings.",
+  "Asking each listing what it wants to be when it grows up.",
+  "Measuring gains. Both kinds.",
+  "Still faster than scrolling the marketplace yourself.",
+  "Negotiating with Whop's servers. They drive a hard bargain.",
+  "Alphabetising the hustle.",
+  "Almost there. Probably. Statistically.",
+];
+
+let jokeTimer = null;
+let elapsedTimer = null;
+
+function startScrapeTheatre() {
+  const jokeEl = document.getElementById("jokeLine");
+  const elapsedEl = document.getElementById("elapsedLine");
+  const started = Date.now();
+  let i = Math.floor(Math.random() * SCRAPE_JOKES.length);
+
+  jokeEl.textContent = SCRAPE_JOKES[i];
+  elapsedEl.textContent = "Scraping Whop \u2026 0s";
+
+  jokeTimer = setInterval(() => {
+    jokeEl.classList.add("is-fading");
+    setTimeout(() => {
+      i = (i + 1) % SCRAPE_JOKES.length;
+      jokeEl.textContent = SCRAPE_JOKES[i];
+      jokeEl.classList.remove("is-fading");
+    }, 300);
+  }, 3600);
+
+  elapsedTimer = setInterval(() => {
+    const secs = Math.round((Date.now() - started) / 1000);
+    elapsedEl.textContent = `Scraping Whop \u2026 ${secs}s`;
+  }, 1000);
+}
+
+function stopScrapeTheatre() {
+  clearInterval(jokeTimer);
+  clearInterval(elapsedTimer);
+  jokeTimer = null;
+  elapsedTimer = null;
+}
+
+/** "intro" = the Browse button, "loading" = jokes, "results" = the grid. */
+function showProgramsState(state) {
+  document.getElementById("marketplaceIntro").hidden = state !== "intro";
+  document.getElementById("scrapeLoader").hidden = state !== "loading";
+  document.getElementById("programToolbar").hidden = state !== "results";
+  document.getElementById("programGrid").hidden = state !== "results";
+  document.getElementById("totalCount").hidden = state !== "results";
+}
+
+async function loadBusinesses(refresh = false) {
+  const label = document.getElementById("syncBtnLabel");
+  const grid = document.getElementById("programGrid");
+  const status = document.getElementById("liveStatus");
+
+  if (refresh) label.textContent = "Syncing\u2026";
+  showProgramsState("loading");
+  startScrapeTheatre();
+
+  // Neither connected nor offline until this request answers
+  status.classList.remove("is-down");
+  status.classList.add("is-checking");
+  document.getElementById("liveStatusText").textContent = "Starting the Apify scraper\u2026";
+
+  try {
+    const params = new URLSearchParams();
+    if (refresh) params.set("refresh", "true");
+    const res = await authFetch(`/api/businesses?${params}`);
+    const json = await res.json();
+    allBusinesses = json.data || [];
+    lastSync = json.scrapedAt || null;
+    servedFromCache = !!json.cached;
+    status.classList.remove("is-down", "is-checking");
+    document.getElementById("liveStatusText").textContent = "Apify web scraper live";
+    applyFilters();
+  } catch (err) {
+    status.classList.remove("is-checking");
+    status.classList.add("is-down");
+    document.getElementById("liveStatusText").textContent = "Apify scraper unreachable";
+    document.getElementById("totalCount").textContent = "";
+    grid.innerHTML = `
+      <div class="empty-state">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+        <h2>Can't reach the backend</h2>
+        <p>Nothing is answering at <code>${API}</code>. Run <code>npm run dev</code> inside <code>backend/</code>, then hit Sync.</p>
+      </div>`;
+  } finally {
+    stopScrapeTheatre();
+    showProgramsState("results");
+    if (refresh) label.textContent = "Sync";
+  }
+}
+
+function filterCategory(cat, el) {
+  currentCategory = cat;
+  document.querySelectorAll(".filter-pill").forEach((pl) => pl.classList.remove("active"));
+  if (el) {
+    el.classList.add("active");
+    mo.from(el, { scale: 0.9, duration: 0.3, ease: "back.out(2.2)" });
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  const query = (document.getElementById("searchInput").value || "").toLowerCase().trim();
+
+  // The pill order is the canonical niche order - read it straight off the DOM
+  // so the pills and the grid can never disagree.
+  const nicheOrder = Array.from(document.querySelectorAll(".filter-pill"))
+    .map((pl) => pl.dataset.cat)
+    .filter((c) => c !== "all");
+
+  filteredBusinesses = allBusinesses.filter((b) => {
+    const matchesCat = currentCategory === "all" || (b.category || "").toLowerCase() === currentCategory;
+    const matchesSearch = !query ||
+      (b.name || "").toLowerCase().includes(query) ||
+      (b.seller || "").toLowerCase().includes(query) ||
+      (b.headline || "").toLowerCase().includes(query);
+    return matchesCat && matchesSearch;
+  });
+
+  // Group the All view by niche in pill order; anything unclassified sinks to the end
+  filteredBusinesses.sort((a, b) => {
+    const ia = nicheOrder.indexOf((a.category || "").toLowerCase());
+    const ib = nicheOrder.indexOf((b.category || "").toLowerCase());
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+
+  const synced = lastSync
+    ? ` &middot; synced ${new Date(lastSync).toLocaleString()}`
+    : "";
+  const cacheNote = servedFromCache
+    ? ' &middot; <span style="color: var(--warn);">dev cache &mdash; press Sync for live</span>'
+    : "";
+  const countEl = document.getElementById("totalCount");
+  countEl.innerHTML =
+    `<strong id="shownCount">0</strong> of ${allBusinesses.length} live programs${synced}${cacheNote}`;
+  mo.count(document.getElementById("shownCount"), filteredBusinesses.length, { duration: 0.7 });
+
+  renderList();
+}
+
+function catClassOf(category) {
+  const c = (category || "general").toLowerCase().replace(/[^a-z]/g, "");
+  return ["trading", "fitness", "business", "marketing"].includes(c) ? "cat-" + c : "cat-general";
+}
+
+function esc(str) {
+  return String(str == null ? "" : str).replace(/[&<>"']/g, (ch) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]
+  ));
+}
+
+function renderList() {
+  const grid = document.getElementById("programGrid");
+  grid.innerHTML = "";
+
+  if (filteredBusinesses.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <h2>Nothing matched</h2>
+        <p>No live programs in this category yet. Run a sync to pull fresh listings from the Whop marketplace.</p>
+      </div>`;
+    return;
+  }
+
+  filteredBusinesses.forEach((b, i) => {
+    const card = document.createElement("article");
+    card.className = "program-card";
+    card.style.setProperty("--i", String(Math.min(i, 11)));
+    card.innerHTML = `
+      <div class="top">
+        <span class="cat-tag ${catClassOf(b.category)}">${esc(b.categoryLabel || b.category || "General")}</span>
+        <span style="flex:1"></span>
+        <span class="rating">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#e8b33c" aria-hidden="true"><path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.4l6.5-.9z"/></svg>
+          ${b.reviewsAverage ? esc(b.reviewsAverage) : "\u2014"}
+        </span>
+      </div>
+      <div class="body">
+        <h2>${esc(b.name)}</h2>
+        <p class="seller">${esc(b.seller)}</p>
+        <p class="headline">${esc(b.headline || b.description || "Discover this program on Whop")}</p>
+      </div>
+      <div class="foot">
+        <span class="price">${esc(b.price)}</span>
+        <button type="button" class="btn btn-outline" data-select>
+          Select
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </button>
+      </div>`;
+
+    card.querySelector("button[data-select]").addEventListener("click", () => selectProgram(b));
+    grid.appendChild(card);
+  });
+
+  // Reveal in sequence, capped so a long list does not crawl in
+  mo.reveal(grid.querySelectorAll(".program-card"), { y: 18, stagger: 0.04 });
+}
+
+/* ---------- 03 campaign popup ---------- */
+
+async function selectProgram(b) {
+  selectedBusiness = b;
+
+  document.getElementById("campaignName").textContent = b.name || "\u2014";
+  document.getElementById("campaignSeller").textContent = "Offered by " + (b.seller || "Unknown seller");
+  document.getElementById("campaignPrice").textContent = b.price || "\u2014";
+
+  const cat = document.getElementById("campaignCat");
+  cat.textContent = b.categoryLabel || b.category || "General";
+  cat.className = "cat-tag " + catClassOf(b.category);
+
+  // Apify rarely returns a commission, so fall back to Whop's typical range
+  document.getElementById("statCommission").textContent =
+    b.commission ? b.commission + "%" : "15\u201330%";
+  const ratingEl = document.getElementById("statRating");
+  if (b.reviewsAverage) {
+    mo.count(ratingEl, Number(b.reviewsAverage), {
+      duration: 0.7, format: (v) => v.toFixed(2),
+    });
+  } else {
+    ratingEl.textContent = "\u2014";
+  }
+
+  const membersEl = document.getElementById("statMembers");
+  if (b.members) {
+    mo.count(membersEl, Number(b.members), {
+      duration: 0.9, format: (v) => Math.round(v).toLocaleString(),
+    });
+  } else {
+    membersEl.textContent = "\u2014";
+  }
+  document.getElementById("statCategory").textContent = b.categoryLabel || b.category || "General";
+
+  document.getElementById("campaignPitch").textContent =
+    b.headline || b.description || "No description supplied for this program.";
+
+  document.getElementById("affiliateUrlText").textContent = b.link || "\u2014";
+  document.getElementById("affiliateTag").textContent = whopHandle ? `?a=${whopHandle}` : "not set";
+  document.getElementById("emailSubject").value = `Thought you'd like ${b.name}`;
+  if (!document.getElementById("senderName").value && currentUsername) {
+    document.getElementById("senderName").value = currentUsername;
+  }
+
+  const alertEl = document.getElementById("statusAlert");
+  alertEl.className = "status-message";
+  alertEl.textContent = "";
+
+  document.getElementById("sendCampaignName").textContent = b.name || "\u2014";
+  selectedTemplate = null;
+
+  mo.from("#campaignModal .stat", {
+    y: 12, opacity: 0, duration: 0.4, ease: "power3.out", stagger: 0.06, delay: 0.12,
+  });
+
+  // Don't carry a previous campaign's recipients or results over
+  bulkRecipients = [];
+  document.getElementById("leadFile").value = "";
+  document.getElementById("fileName").textContent = "Choose a .csv or .txt file";
+  document.getElementById("recipientSummary").hidden = true;
+  document.getElementById("sendProgress").hidden = true;
+  setSendMode("single");
+
+  openCampaignModal();
+}
+
+function copyLink() {
+  if (!selectedBusiness) return;
+  const btn = document.getElementById("copyLinkBtn");
+  navigator.clipboard.writeText(selectedBusiness.link).then(() => {
+    btn.textContent = "Copied";
+    mo.from(btn, { scale: 0.82, duration: 0.35, ease: "back.out(2.5)" });
+    setTimeout(() => { btn.textContent = "Copy"; }, 1400);
+  });
+}
+
+/* ---------- 05 send ---------- */
+
+let mailReady = false;        // whether the backend can actually deliver
+let sendMode = "single";      // "single" | "bulk"
+let bulkRecipients = [];      // parsed, de-duplicated, validated
+
+const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+
+function setSendMode(mode) {
+  sendMode = mode;
+  const single = mode === "single";
+
+  document.getElementById("modeSingle").classList.toggle("is-on", single);
+  document.getElementById("modeBulk").classList.toggle("is-on", !single);
+  document.getElementById("modeSingle").setAttribute("aria-selected", String(single));
+  document.getElementById("modeBulk").setAttribute("aria-selected", String(!single));
+
+  document.getElementById("singleBlock").hidden = !single;
+  document.getElementById("bulkBlock").hidden = single;
+
+  const alertEl = document.getElementById("statusAlert");
+  alertEl.className = "status-message";
+  alertEl.textContent = "";
+  document.getElementById("sendProgress").hidden = true;
+
+  updateSendButton();
+}
+
+function updateSendButton() {
+  const btn = document.getElementById("sendBtn");
+  if (sendMode === "bulk") {
+    const n = bulkRecipients.length;
+    btn.textContent = n ? `Send to ${n} lead${n === 1 ? "" : "s"}` : "Send newsletter";
+    btn.disabled = n === 0;
+  } else {
+    btn.textContent = "Send newsletter";
+    btn.disabled = false;
+  }
+}
+
+/**
+ * Pull addresses out of whatever the user uploaded.
+ *
+ * A plain regex sweep handles one-per-line lists and CSVs alike, whatever the
+ * column order or header, without needing a CSV parser.
+ */
+function parseRecipients(text) {
+  const found = text.match(EMAIL_RE) || [];
+  const seen = new Set();
+  const unique = [];
+
+  for (const raw of found) {
+    const addr = raw.trim().toLowerCase();
+    if (seen.has(addr)) continue;
+    seen.add(addr);
+    unique.push(addr);
+  }
+
+  return { unique, total: found.length, duplicates: found.length - unique.length };
+}
+
+async function handleFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  document.getElementById("fileName").textContent = file.name;
+
+  const summary = document.getElementById("recipientSummary");
+  summary.hidden = false;
+
+  let text;
+  try {
+    text = await file.text();
+  } catch (err) {
+    summary.innerHTML = `<span class="warn">Couldn't read that file: ${esc(err.message)}</span>`;
+    bulkRecipients = [];
+    updateSendButton();
+    return;
+  }
+
+  const { unique, duplicates } = parseRecipients(text);
+  bulkRecipients = unique;
+
+  if (!unique.length) {
+    summary.innerHTML = `<span class="warn">No email addresses found in ${esc(file.name)}.</span>`;
+    updateSendButton();
+    return;
+  }
+
+  const dupeNote = duplicates
+    ? ` &middot; <span class="warn">${duplicates} duplicate${duplicates === 1 ? "" : "s"} removed</span>`
+    : "";
+
+  summary.innerHTML =
+    `<strong>${unique.length}</strong> address${unique.length === 1 ? "" : "es"} ready${dupeNote}` +
+    `<div class="recipient-list">${unique.map((a) => esc(a)).join("<br>")}</div>`;
+
+  updateSendButton();
+}
+
+/** One request per recipient, shared by both modes. */
+async function sendOne(leadEmail, subject, senderName) {
+  const res = await authFetch("/api/send", {
+    method: "POST",
+    body: JSON.stringify({
+      businessName: selectedBusiness.name,
+      category: selectedBusiness.category,
+      link: selectedBusiness.link,
+      headline: selectedBusiness.headline,
+      price: selectedBusiness.price,
+      seller: selectedBusiness.seller,
+      leadEmail,
+      subject,
+      senderName,
+      username: currentUsername || "",
+      template: selectedTemplate || "",
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `failed (${res.status})`);
+  return data;
+}
+
+async function sendEmail() {
+  const subject = document.getElementById("emailSubject").value.trim();
+  const senderName = document.getElementById("senderName").value.trim();
+  const alertEl = document.getElementById("statusAlert");
+  const sendBtn = document.getElementById("sendBtn");
+
+  if (!selectedBusiness) return;
+
+  if (sendMode === "single") {
+    const leadEmail = document.getElementById("leadEmail").value.trim();
+    if (!leadEmail) {
+      alertEl.className = "status-message status-error";
+      alertEl.textContent = "Please enter the lead's email address first.";
+      document.getElementById("leadEmail").focus();
+      return;
+    }
+
+    alertEl.className = "status-message status-pending";
+    alertEl.textContent = "Sending via Gmail API\u2026";
+    sendBtn.disabled = true;
+
+    try {
+      const data = await sendOne(leadEmail, subject, senderName);
+      alertEl.className = "status-message status-success";
+      alertEl.textContent = `Newsletter delivered to ${leadEmail}. Message ID: ${data.messageId}`;
+    } catch (err) {
+      alertEl.className = "status-message status-error";
+      alertEl.textContent = `Send failed: ${err.message}`;
+    } finally {
+      sendBtn.disabled = false;
+    }
+    return;
+  }
+
+  /* ---- bulk ---- */
+
+  if (!bulkRecipients.length) {
+    alertEl.className = "status-message status-error";
+    alertEl.textContent = "Upload a file with at least one email address first.";
+    return;
+  }
+
+  const progress = document.getElementById("sendProgress");
+  const bar = document.getElementById("progressBar");
+  const count = document.getElementById("progressCount");
+  const tally = document.getElementById("progressTally");
+  const results = document.getElementById("resultList");
+
+  progress.hidden = false;
+  results.innerHTML = "";
+  alertEl.className = "status-message status-pending";
+  alertEl.textContent = `Sending to ${bulkRecipients.length} recipients\u2026`;
+  sendBtn.disabled = true;
+
+  let sent = 0;
+  let failed = 0;
+
+  for (let i = 0; i < bulkRecipients.length; i++) {
+    const addr = bulkRecipients[i];
+    const row = document.createElement("div");
+
+    try {
+      await sendOne(addr, subject, senderName);
+      sent++;
+      row.innerHTML = `<span class="ok">&#10003;</span><span class="addr">${esc(addr)}</span>`;
+    } catch (err) {
+      failed++;
+      row.innerHTML = `<span class="bad">&#10007;</span><span class="addr">${esc(addr)}</span><span class="bad">${esc(err.message)}</span>`;
+    }
+
+    results.appendChild(row);
+    results.scrollTop = results.scrollHeight;
+
+    const done = i + 1;
+    bar.style.width = `${(done / bulkRecipients.length) * 100}%`;
+    count.textContent = `${done} of ${bulkRecipients.length}`;
+    tally.textContent = `${sent} sent${failed ? ` \u00b7 ${failed} failed` : ""}`;
+
+    // Space the requests out so Gmail doesn't rate-limit the run
+    if (done < bulkRecipients.length) await new Promise((r) => setTimeout(r, 900));
+  }
+
+  alertEl.className = failed ? "status-message status-error" : "status-message status-success";
+  alertEl.textContent = failed
+    ? `Finished: ${sent} sent, ${failed} failed. See the list below.`
+    : `All ${sent} newsletters delivered.`;
+  sendBtn.disabled = false;
+}
+
+/* ---------- wiring ---------- */
+
+document.getElementById("loginFormEl").addEventListener("submit", handleLogin);
+document.getElementById("authSwitch").addEventListener("click", () =>
+  setAuthMode(authMode === "login" ? "register" : "login"));
+document.getElementById("mailboxSave").addEventListener("click", saveMailbox);
+document.getElementById("mailboxClose").addEventListener("click", closeMailboxModal);
+document.getElementById("mailboxDisconnect").addEventListener("click", disconnectMailbox);
+document.getElementById("mailboxModal").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeMailboxModal();
+});
+document.getElementById("signOutBtn").addEventListener("click", signOut);
+document.getElementById("browseBtn").addEventListener("click", () => loadBusinesses());
+document.getElementById("syncBtn").addEventListener("click", () => loadBusinesses(true));
+document.getElementById("searchInput").addEventListener("input", applyFilters);
+document.getElementById("backToPrograms").addEventListener("click", closeCampaignModal);
+document.getElementById("cancelCampaign").addEventListener("click", closeCampaignModal);
+document.getElementById("proceedBtn").addEventListener("click", proceedToTemplates);
+document.getElementById("tplModalClose").addEventListener("click", closeTemplateModal);
+document.getElementById("tplModalCancel").addEventListener("click", closeTemplateModal);
+document.getElementById("tplProceedBtn").addEventListener("click", proceedToSend);
+
+document.getElementById("templateModal").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeTemplateModal();
+});
+document.getElementById("backToCampaignFromTemplates").addEventListener("click", () => {
+  closeTemplateModal();
+  showScreen("screenPrograms");
+  openCampaignModal();
+});
+
+// Going back from the send screen reopens the details popup over the programs grid
+document.getElementById("backToCampaign").addEventListener("click", () => showScreen("screenTemplates"));
+
+// Clicking the dimmed area closes it; clicks inside the dialog must not
+document.getElementById("campaignModal").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) closeCampaignModal();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (!document.getElementById("mailboxModal").hidden) closeMailboxModal();
+  else if (!document.getElementById("templateModal").hidden) closeTemplateModal();
+  else if (!document.getElementById("campaignModal").hidden) closeCampaignModal();
+});
+document.getElementById("copyLinkBtn").addEventListener("click", copyLink);
+document.getElementById("sendBtn").addEventListener("click", sendEmail);
+document.getElementById("modeSingle").addEventListener("click", () => setSendMode("single"));
+document.getElementById("modeBulk").addEventListener("click", () => setSendMode("bulk"));
+document.getElementById("leadFile").addEventListener("change", handleFile);
+
+document.querySelectorAll(".filter-pill").forEach((pill) => {
+  pill.addEventListener("click", () => filterCategory(pill.dataset.cat, pill));
+});
+</script>
+</body>
+</html>
